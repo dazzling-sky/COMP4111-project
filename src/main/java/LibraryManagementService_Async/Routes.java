@@ -23,18 +23,18 @@ public class Routes {
     public Routes(){
 
         //Routes for Authentication functionalities
-        patternForPost.put("http://localhost:8080/BookManagementService/login", postHandler);
-        patternForGet.put("http://localhost:8080/BookManagementService/logout", getHandler);
+        patternForPost.put("/BookManagementService/login", postHandler);
+        patternForGet.put("/BookManagementService/logout", getHandler);
 
         //Routes for booking operations functionalities
-        patternForPost.put("http://localhost:8080/BookManagementService/books", postHandler);
-        patternForGet.put("http://localhost:8080/BookManagementService/books" + "*", getHandler);
-        patternForPut.put("http://localhost:8080/BookManagementService/books" + "*", putHandler);
-        patternForDelete.put("http://localhost:8080/BookManagementService/books" + "*", deleteHandler);
+        patternForPost.put("/BookManagementService/books", postHandler);
+        patternForGet.put("/BookManagementService/books" + "*", getHandler);
+        patternForPut.put("/BookManagementService/books" + "*", putHandler);
+        patternForDelete.put("/BookManagementService/books" + "*", deleteHandler);
 
         //Routes for transaction operations functionalities
-        patternForPost.put("http://localhost:8080/BookManagementService/transaction", postHandler);
-        patternForPut.put("http://localhost:8080/BookManagementService/transaction", putHandler);
+        patternForPost.put("/BookManagementService/transaction", postHandler);
+        patternForPut.put("/BookManagementService/transaction", putHandler);
     }
 
     public Map<String, Handler> getPatternForGet() {

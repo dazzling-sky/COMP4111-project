@@ -1,8 +1,7 @@
 package LibraryManagementService_Async.Handlers;
 
-import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
-import org.apache.http.nio.protocol.HttpAsyncExchange;
+import org.apache.http.HttpResponse;
 import org.apache.http.protocol.HttpContext;
 
 import java.io.IOException;
@@ -10,7 +9,7 @@ import java.io.IOException;
 public class DELETEHandler extends Handler{
 
     @Override
-    public void handle(HttpRequest data, HttpAsyncExchange httpExchange, HttpContext context) throws HttpException, IOException {
+    public void handleInternal(HttpRequest request, HttpResponse response, HttpContext context) {
 
     }
 }
