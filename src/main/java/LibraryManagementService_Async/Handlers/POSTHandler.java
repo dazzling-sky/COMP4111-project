@@ -1,7 +1,7 @@
 package LibraryManagementService_Async.Handlers;
 
 import LibraryManagementService_Async.Operations.Authentication;
-import LibraryManagementService_Async.Operations.URIparser;
+import LibraryManagementService_Async.Utils.URIparser;
 
 import org.apache.http.*;
 import org.apache.http.protocol.HttpContext;
@@ -10,7 +10,6 @@ import java.util.Locale;
 
 public class POSTHandler extends Handler{
 
-    URIparser parser = new URIparser();
     Authentication auth = new Authentication();
 
     @Override
@@ -24,8 +23,8 @@ public class POSTHandler extends Handler{
         String raw_path = request.getRequestLine().getUri();
 
         // Handle no parameter requests
-        if (!parser.containsParams(raw_path)){
-            if(parser.getNoParamsUri(raw_path).equals("/BookManagementService/login")){
+        if (!URIparser.containsParams(raw_path)){
+            if(URIparser.getNoParamsUri(raw_path).equals("/BookManagementService/login")){
                 auth.handleLogin(request, response);
             }
         }
