@@ -1,15 +1,15 @@
-package LibraryManagementService_Async.Operations;
+package LibraryManagementService_Async.Utils;
 
 public class URIparser {
 
-    public boolean containsParams(String raw_path){
+    public static boolean containsParams(String raw_path){
         if (raw_path.indexOf("?") == -1){
             return false;
         }
         return true;
     }
 
-    public String getNoParamsUri(String raw_path){
+    public static String getNoParamsUri(String raw_path){
         return raw_path;
     }
 }
