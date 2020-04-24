@@ -24,14 +24,14 @@ public class TokenGenerator {
                     builder.append(NUMBERS.charAt(number));
                 }
             }
-        }while(!isUnique(builder.toString()));
+        }while(!isLogin(builder.toString()));
         return builder.toString();
 
 
     }
 
-    public static boolean isUnique(String token) {
-        ResultSet rs1 = connection.execQuery("users", String.format("access_token=\"%s\"", token));
+    public static boolean isLogin(String token) {
+        ResultSet rs1 = connection.execQuery("users", "*", String.format("access_token=\"%s\"", token));
 
         try {
             if (rs1.next()) {

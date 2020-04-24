@@ -7,12 +7,12 @@ public class DBConnection {
     private final String DB_USERNAME = "root";
     private final String DB_PASSWORD = "COMP4111mysql!";
 
-    public ResultSet execQuery(String tableName, String condition){
+    public ResultSet execQuery(String tableName, String selector,  String condition){
         try {
             Class.forName("com.mysql.jdbc.Driver");
             Connection con = DriverManager.getConnection(CONNECTION_STRING, DB_USERNAME, DB_PASSWORD);
             PreparedStatement stmt = condition.equals("")?con.prepareStatement("select * from " + tableName) :
-                    con.prepareStatement( "select * from " + tableName + " where " + condition + ";");
+                    con.prepareStatement( "select " + selector + " from " + tableName + " where " + condition + ";");
             return stmt.executeQuery();
         }catch(Exception e){
             System.out.println(e);

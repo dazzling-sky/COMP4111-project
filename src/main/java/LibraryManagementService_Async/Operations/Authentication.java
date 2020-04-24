@@ -5,9 +5,11 @@ import LibraryManagementService_Async.Models.User;
 import LibraryManagementService_Async.Utils.JSONConverter;
 import LibraryManagementService_Async.Utils.TokenGenerator;
 
+import LibraryManagementService_Async.Utils.URIparser;
 import org.apache.http.*;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
+
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -19,7 +21,7 @@ public class Authentication {
     public void handleLogin(HttpRequest request, HttpResponse response){
         HttpEntity entity = ((HttpEntityEnclosingRequest) request).getEntity();
         User user = JSONConverter.convertToUser(entity);
-        ResultSet rs1 = connection.execQuery("users", String.format("name=\"%s\" and password=\"%s\" and is_logon = b\'0\'", user.getUsername(), user.getPassword()));
+        ResultSet rs1 = connection.execQuery("users", "*", String.format("name=\"%s\" and password=\"%s\" and is_logon = b\'0\'", user.getUsername(), user.getPassword()));
 
         try{
             if (rs1.next()){
@@ -32,7 +34,7 @@ public class Authentication {
                 response.setStatusCode(HttpStatus.SC_OK);
             }
             else{
-                ResultSet rs2 = connection.execQuery("users", String.format("name=\"%s\" and password=\"%s\"", user.getUsername(), user.getPassword()));
+                ResultSet rs2 = connection.execQuery("users", "*", String.format("name=\"%s\" and password=\"%s\"", user.getUsername(), user.getPassword()));
                 if (rs2.next()){
                     response.setStatusCode(HttpStatus.SC_CONFLICT);
                 }
@@ -45,4 +47,25 @@ public class Authentication {
         }
     }
 
+    public void handleLogout(HttpRequest request, HttpResponse response){
+        String token = URIparser.getToken(request.getRequestLine().getUri());
+        ResultSet rs1 = connection.execQuery("users", "is_logon", String.format("access_token=\"%s\";", token));
+        try{
+            if(rs1.next()){
+                int bit = rs1.getInt("is_logon");
+                if (bit == 1){
+                    connection.execUpdate("users", "access_token=NULL, is_logon=b\'0\'", String.format("access_token=\"%s\"", token));
+                    response.setStatusCode(HttpStatus.SC_OK);
+                }
+                else{
+                    response.setStatusCode(HttpStatus.SC_BAD_REQUEST);
+                }
+            }
+            else{
+                response.setStatusCode(HttpStatus.SC_BAD_REQUEST);
+            }
+        }catch(SQLException e){
+            System.out.println(e);
+        }
+    }
 }
