@@ -1,6 +1,7 @@
 package LibraryManagementService_Async.Handlers;
 
 import LibraryManagementService_Async.Operations.Authentication;
+import LibraryManagementService_Async.Operations.BookManagement;
 import LibraryManagementService_Async.Utils.URIparser;
 
 import org.apache.http.*;
@@ -11,6 +12,7 @@ import java.util.Locale;
 public class POSTHandler extends Handler{
 
     Authentication auth = new Authentication();
+    BookManagement bookMgmt = new BookManagement();
 
     @Override
     public void handleInternal(HttpRequest request, HttpResponse response, HttpContext context) throws MethodNotSupportedException {
@@ -22,9 +24,14 @@ public class POSTHandler extends Handler{
 
         String raw_path = request.getRequestLine().getUri();
 
-        // Handle no parameter requests
+        // Handle user login
         if(URIparser.parsedUri(raw_path).equals("/BookManagementService/login")){
-                auth.handleLogin(request, response);
+            auth.handleLogin(request, response);
+        }
+
+        // Handle book add
+        if(URIparser.parsedUri(raw_path).equals("/BookManagementService/books")){
+            bookMgmt.addBooks(request, response);
         }
     }
 }

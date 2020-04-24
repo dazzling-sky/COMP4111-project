@@ -24,7 +24,7 @@ public class TokenGenerator {
                     builder.append(NUMBERS.charAt(number));
                 }
             }
-        }while(!isLogin(builder.toString()));
+        }while(isLogin(builder.toString()));
         return builder.toString();
 
 
@@ -35,11 +35,11 @@ public class TokenGenerator {
 
         try {
             if (rs1.next()) {
-                return false;
+                return true;
             }
         } catch (SQLException e) {
             System.out.println(e);
         }
-        return true;
+        return false;
     }
 }
