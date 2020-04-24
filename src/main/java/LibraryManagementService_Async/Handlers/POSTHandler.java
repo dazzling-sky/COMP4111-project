@@ -23,10 +23,8 @@ public class POSTHandler extends Handler{
         String raw_path = request.getRequestLine().getUri();
 
         // Handle no parameter requests
-        if (!URIparser.containsParams(raw_path)){
-            if(URIparser.getNoParamsUri(raw_path).equals("/BookManagementService/login")){
+        if(URIparser.parsedUri(raw_path).equals("/BookManagementService/login")){
                 auth.handleLogin(request, response);
-            }
         }
     }
 }
