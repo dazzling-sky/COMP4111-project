@@ -9,7 +9,7 @@ public class User {
     @JsonProperty("Password")
     private String Password;
 
-    //Models.User(){}
+    User(){}
 
     public String getUsername(){
         return this.Username;
