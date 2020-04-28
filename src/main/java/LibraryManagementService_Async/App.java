@@ -40,7 +40,7 @@ public class App {
 
         try{
             server.start();
-            Runtime.getRuntime().addShutdownHook(new Thread(() -> server.shutdown(5, TimeUnit.SECONDS)));
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> server.shutdown(2, TimeUnit.SECONDS)));
             server.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
         }catch(IOException | InterruptedException e){
             System.out.println(e);
