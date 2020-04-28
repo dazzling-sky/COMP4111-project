@@ -9,7 +9,9 @@ import LibraryManagementService_Async.Utils.URIparser;
 import org.apache.http.*;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.util.EntityUtils;
 
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -160,5 +162,66 @@ public class BookManagement {
             default:
         }
         return bookList;
+    }
+
+    public void loanBooks(HttpRequest request, HttpResponse response){
+        if(!TokenGenerator.isLogin(URIparser.getToken(request.getRequestLine().getUri()))){
+            response.setStatusCode(HttpStatus.SC_BAD_REQUEST);
+        }
+        else{
+            int id = URIparser.getBookId(request.getRequestLine().getUri());
+            HttpEntity entity = ((HttpEntityEnclosingRequest) request).getEntity();
+            StringBuffer entityContent = new StringBuffer();
+            try{
+                entityContent.append(EntityUtils.toString(entity));
+            }catch(IOException e){
+                System.out.println(e);
+            }
+            int valueIndex = entityContent.indexOf(":");
+            int closingIndex = entityContent.indexOf("}");
+            String available = entityContent.substring(valueIndex + 1, closingIndex).trim();
+
+            if(available.equals("false")){
+                ResultSet rs1 = connection.execQuery("books", "*", String.format("ID=%d;", id));
+                try{
+                    if(rs1.next()){
+                        int bit = rs1.getInt("Available");
+                        if(bit == 1){
+                            connection.execUpdate("books", "Available=0", String.format("ID=%d;", id));
+                            response.setStatusCode(HttpStatus.SC_OK);
+                        }
+                        else{
+                            response.setStatusCode(HttpStatus.SC_BAD_REQUEST);
+                        }
+                    }
+                    else{
+                        response.setStatusLine(HttpVersion.HTTP_1_1, 404, "No book record");
+                    }
+                }catch(SQLException e){
+                    System.out.println(e);
+                }
+            }
+
+            if(available.equals("true")){
+                ResultSet rs1 = connection.execQuery("books", "*", String.format("ID=%d;", id));
+                try {
+                    if (rs1.next()) {
+                        int bit = rs1.getInt("Available");
+                        if(bit == 0){
+                            connection.execUpdate("books", "Available=1", String.format("ID=%d;", id));
+                            response.setStatusCode(HttpStatus.SC_OK);
+                        }
+                        else{
+                            response.setStatusCode(HttpStatus.SC_BAD_REQUEST);
+                        }
+                    }
+                    else{
+                        response.setStatusLine(HttpVersion.HTTP_1_1, 404, "No book record");
+                    }
+                }catch(SQLException e){
+                    System.out.println(e);
+                }
+            }
+        }
     }
 }
