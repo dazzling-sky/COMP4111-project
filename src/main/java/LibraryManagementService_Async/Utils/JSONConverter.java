@@ -12,6 +12,7 @@ import org.apache.http.HttpEntity;
 import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
+import java.util.List;
 
 public class JSONConverter {
 
@@ -53,5 +54,43 @@ public class JSONConverter {
             System.out.println(e);
         }
         return null;
+    }
+
+    public static String produceBookListContent(List<Book> bookList, int limit){
+        StringBuffer array = new StringBuffer(); array.append("[");
+        try{
+            ObjectMapper mapper = new ObjectMapper();
+            if(limit == 0){
+                for(int i=0; i<bookList.size(); i++){
+                    String json = mapper.writeValueAsString(bookList.get(i));
+
+                    if(i == bookList.size() - 1){
+                        array.append(json).append("]");
+                    }
+                    else{
+                        array.append(json).append(",");
+                    }
+                }
+            }
+            else{
+                for(int i=0; i<limit; i++){
+                    String json = mapper.writeValueAsString(bookList.get(i));
+
+                    if(i == bookList.size() - 1){
+                        array.append(json).append("]");
+                    }
+                    else{
+                        array.append(json).append(",");
+                    }
+                }
+            }
+        }catch(JsonMappingException e){
+            System.out.println(e);
+        }catch(JsonGenerationException e){
+            System.out.println(e);
+        }catch(JsonProcessingException e){
+            System.out.println(e);
+        }
+        return array.toString();
     }
 }

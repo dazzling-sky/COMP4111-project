@@ -27,10 +27,11 @@ public class Routes {
         patternForGet.put("/BookManagementService/logout", getHandler);
 
         //Routes for booking operations functionalities
+        patternForDelete.put("/BookManagementService/books" + "/*", deleteHandler);
+        patternForGet.put("/BookManagementService/books", getHandler);
         patternForPost.put("/BookManagementService/books", postHandler);
-        patternForGet.put("/BookManagementService/books" + "*", getHandler);
-        patternForPut.put("/BookManagementService/books" + "*", putHandler);
-        patternForDelete.put("/BookManagementService/books" + "*", deleteHandler);
+        patternForPut.put("/BookManagementService/books" + "/*", putHandler);
+
 
         //Routes for transaction operations functionalities
         patternForPost.put("/BookManagementService/transaction", postHandler);

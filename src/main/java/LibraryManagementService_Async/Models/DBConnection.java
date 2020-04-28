@@ -11,7 +11,7 @@ public class DBConnection {
         try {
             Class.forName("com.mysql.jdbc.Driver");
             Connection con = DriverManager.getConnection(CONNECTION_STRING, DB_USERNAME, DB_PASSWORD);
-            PreparedStatement stmt = condition.equals("")?con.prepareStatement("select * from " + tableName) :
+            PreparedStatement stmt = condition.equals("")?con.prepareStatement("select " + selector + " from " + tableName + ";") :
                     con.prepareStatement( "select " + selector + " from " + tableName + " where " + condition + ";");
             return stmt.executeQuery();
         }catch(Exception e){

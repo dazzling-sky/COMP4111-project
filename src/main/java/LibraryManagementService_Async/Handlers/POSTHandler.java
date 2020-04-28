@@ -17,10 +17,6 @@ public class POSTHandler extends Handler{
     @Override
     public void handleInternal(HttpRequest request, HttpResponse response, HttpContext context) throws MethodNotSupportedException {
         // Handle Post method only
-        String method = request.getRequestLine().getMethod().toUpperCase(Locale.ROOT);
-        if(!method.equals("POST")){
-            throw new MethodNotSupportedException("Only " + method + "method supported");
-        }
 
         String raw_path = request.getRequestLine().getUri();
 
@@ -29,9 +25,14 @@ public class POSTHandler extends Handler{
             auth.handleLogin(request, response);
         }
 
-        // Handle book add
-        if(URIparser.parsedUri(raw_path).equals("/BookManagementService/books")){
-            bookMgmt.addBooks(request, response);
+        // Handle book add & lookup
+        else if(URIparser.parsedUri(raw_path).equals("/BookManagementService/books")){
+            if(request.getRequestLine().getMethod().equals("POST")){
+                bookMgmt.addBooks(request, response);
+            }
+            if(request.getRequestLine().getMethod().equals("GET")){
+                bookMgmt.lookBooks(request, response);
+            }
         }
     }
 }
