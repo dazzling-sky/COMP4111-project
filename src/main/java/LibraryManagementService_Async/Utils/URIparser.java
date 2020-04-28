@@ -11,8 +11,20 @@ public class URIparser {
         }
         else{
             int index = raw_path.indexOf("?");
-            return raw_path.substring(0, index);
+            String url = raw_path.substring(0, index);
+
+            int index_put = url.lastIndexOf("/");
+            if(url.charAt(index_put + 1) < '0' || url.charAt(index_put + 1) > '9'){
+                return url;
+            }
+            return url.substring(0, index_put);
         }
+    }
+
+    public static int getBookId(String raw_path){
+        String url = raw_path.substring(0, raw_path.indexOf("?"));
+        int index_put = url.lastIndexOf("/");
+        return Integer.parseInt(url.substring(index_put + 1));
     }
 
     public static Map<String, String> getQueryParams(String raw_path){

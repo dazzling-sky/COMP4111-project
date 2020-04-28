@@ -20,7 +20,7 @@ public class GETHandler extends Handler {
 
     @Override
     public void handleInternal(HttpRequest request, HttpResponse response, HttpContext context) throws MethodNotSupportedException {
-
+        // Handle Post method only
         String raw_path = request.getRequestLine().getUri();
 
         // Handle user logout
