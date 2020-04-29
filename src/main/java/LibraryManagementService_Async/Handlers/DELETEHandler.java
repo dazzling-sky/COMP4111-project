@@ -21,6 +21,7 @@ public class DELETEHandler extends Handler{
                bookMgmt.loanBooks(request, response);
            }
            if(request.getRequestLine().getMethod().equals("DELETE")){
+               bookMgmt.deleteBooks(request, response);
            }
         }
     }
