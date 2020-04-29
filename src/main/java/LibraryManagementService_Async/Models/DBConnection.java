@@ -43,4 +43,15 @@ public class DBConnection {
             System.out.println(e);
         }
     }
+
+    public void execDelete(String tableName, String condition){
+        try{
+            Class.forName("com.mysql.jdbc.Driver");
+            Connection con = DriverManager.getConnection(CONNECTION_STRING, DB_USERNAME, DB_PASSWORD);
+            PreparedStatement stmt = con.prepareStatement("delete from " + tableName + " where " + condition + ";");
+            stmt.executeUpdate();
+        }catch(Exception e){
+            System.out.println(e);
+        }
+    }
 }

@@ -224,4 +224,25 @@ public class BookManagement {
             }
         }
     }
+
+    public void deleteBooks(HttpRequest request, HttpResponse response){
+        if(!TokenGenerator.isLogin(URIparser.getToken(request.getRequestLine().getUri()))){
+            response.setStatusCode(HttpStatus.SC_BAD_REQUEST);
+        }
+        else{
+            int id = URIparser.getBookId(request.getRequestLine().getUri());
+            try{
+                ResultSet rs1 = connection.execQuery("books", "*", String.format("ID=%d", id));
+                if(rs1.next()){
+                    connection.execDelete("books", String.format("ID=%d", id));
+                    response.setStatusCode(HttpStatus.SC_OK);
+                }
+                else{
+                    response.setStatusLine(HttpVersion.HTTP_1_1, 404, "No book record");
+                }
+            }catch(SQLException e){
+                System.out.println(e);
+            }
+        }
+    }
 }
