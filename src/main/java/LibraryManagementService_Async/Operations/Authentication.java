@@ -5,6 +5,7 @@ import LibraryManagementService_Async.Models.User;
 import LibraryManagementService_Async.Utils.JSONConverter;
 import LibraryManagementService_Async.Utils.TokenGenerator;
 
+import LibraryManagementService_Async.Utils.TransactionIdGenerator;
 import LibraryManagementService_Async.Utils.URIparser;
 import org.apache.http.*;
 import org.apache.http.entity.ContentType;
@@ -21,13 +22,16 @@ public class Authentication {
     public void handleLogin(HttpRequest request, HttpResponse response){
         HttpEntity entity = ((HttpEntityEnclosingRequest) request).getEntity();
         User user = JSONConverter.convertToUser(entity);
-        ResultSet rs1 = connection.execQuery("users", "*", String.format("name=\"%s\" and password=\"%s\" and is_logon = b\'0\'", user.getUsername(), user.getPassword()));
+        ResultSet rs1 = connection.execQuery("users", "*", String.format("Name=\"%s\" and Password=\"%s\" and Is_logon = b\'0\'", user.getUsername(), user.getPassword()));
 
         try{
             if (rs1.next()){
                 String token = TokenGenerator.randomAlphaNumeric(7);
-                connection.execUpdate("users", String.format("access_token=\"%s\", is_logon = b\'1\'", token),
+                String transactionID = TransactionIdGenerator.generateTransID();
+                connection.execUpdate("users", String.format("Access_token=\"%s\",TransactionID=\"%s\", is_logon = b\'1\'", token, transactionID),
                         String.format("name=\"%s\" and password=\"%s\" and is_logon = b\'0\'", user.getUsername(), user.getPassword()));
+                connection.execInsert("transactions", "Access_token, TransactionID", String.format("\"%s\", \"%s\"", token, transactionID));
+
                 String payload = String.format("{ \"Token\" : \"%s\"}", token);
                 StringEntity stringEntity = new StringEntity(payload, ContentType.APPLICATION_JSON);
                 response.setEntity(stringEntity);
@@ -49,12 +53,13 @@ public class Authentication {
 
     public void handleLogout(HttpRequest request, HttpResponse response){
         String token = URIparser.getToken(request.getRequestLine().getUri());
-        ResultSet rs1 = connection.execQuery("users", "is_logon", String.format("access_token=\"%s\";", token));
+        ResultSet rs1 = connection.execQuery("users", "Is_logon", String.format("Access_token=\"%s\";", token));
         try{
             if(rs1.next()){
-                int bit = rs1.getInt("is_logon");
+                int bit = rs1.getInt("Is_logon");
                 if (bit == 1){
-                    connection.execUpdate("users", "access_token=NULL, is_logon=b\'0\'", String.format("access_token=\"%s\"", token));
+                    connection.execUpdate("users", "Access_token=NULL, TransactionID=NULL, is_logon=b\'0\'", String.format("Access_token=\"%s\"", token));
+                    connection.execDelete("transactions", String.format("Access_token=\"%s\"", token));
                     response.setStatusCode(HttpStatus.SC_OK);
                 }
                 else{
