@@ -11,9 +11,9 @@ public class TokenGenerator {
     private static final DBConnection connection = new DBConnection();
 
     public static String randomAlphaNumeric(int count) {
-        StringBuilder builder;
+        StringBuffer builder;
         do{
-            builder =  new StringBuilder();
+            builder =  new StringBuffer();
             while (count-- != 0) {
                 if (count > 3){
                     int character = (int)(Math.random()*ALPHABET.length());
