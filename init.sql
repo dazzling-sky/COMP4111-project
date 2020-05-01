@@ -33,7 +33,6 @@ CREATE TABLE books (
 CREATE TABLE transactions (
     Access_token varchar(10) NOT NULL,
     TransactionID varchar(20) NOT NULL,
-    Action varchar(255),
-    Available bit NOT NULL DEFAULT b'1'
+    Action varchar(255)
 );
 

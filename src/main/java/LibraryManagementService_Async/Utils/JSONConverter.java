@@ -1,6 +1,7 @@
 package LibraryManagementService_Async.Utils;
 
 import LibraryManagementService_Async.Models.Book;
+import LibraryManagementService_Async.Models.Transaction;
 import LibraryManagementService_Async.Models.User;
 
 import com.fasterxml.jackson.core.JsonGenerationException;
@@ -43,6 +44,26 @@ public class JSONConverter {
             try{
                 Book book = mapper.readValue(entityContent, Book.class);
                 return book;
+            }catch(JsonMappingException e){
+                System.out.println(e);
+            }catch(JsonGenerationException e){
+                System.out.println(e);
+            }catch(JsonProcessingException e){
+                System.out.println(e);
+            }
+        }catch(IOException e){
+            System.out.println(e);
+        }
+        return null;
+    }
+
+    public static Transaction convertToTransaction(HttpEntity entity){
+        try{
+            String entityContent = EntityUtils.toString(entity);
+            ObjectMapper mapper = new ObjectMapper();
+            try{
+                Transaction transaction = mapper.readValue(entityContent, Transaction.class);
+                return transaction;
             }catch(JsonMappingException e){
                 System.out.println(e);
             }catch(JsonGenerationException e){
