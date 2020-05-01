@@ -34,6 +34,10 @@ public class PUTHandler extends Handler {
                     transMgmt.requestTransactionId(request, response);
                 }
             }
+
+            if(request.getRequestLine().getMethod().equals("PUT")){
+                transMgmt.prepareOperations(request, response);
+            }
         }
     }
 }

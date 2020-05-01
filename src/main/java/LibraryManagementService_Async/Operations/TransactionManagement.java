@@ -1,14 +1,16 @@
 package LibraryManagementService_Async.Operations;
 
 import LibraryManagementService_Async.Models.DBConnection;
+import LibraryManagementService_Async.Models.Transaction;
+import LibraryManagementService_Async.Utils.JSONConverter;
 import LibraryManagementService_Async.Utils.TokenGenerator;
 import LibraryManagementService_Async.Utils.URIparser;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
+import org.apache.http.*;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.util.EntityUtils;
 
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
@@ -52,6 +54,36 @@ public class TransactionManagement {
                             response.setStatusCode(HttpStatus.SC_OK);
                         }
                     }
+                }
+            }catch(SQLException e){
+                System.out.println(e);
+            }
+        }
+    }
+
+    public void prepareOperations(HttpRequest request, HttpResponse response){
+        if(!TokenGenerator.isLogin(URIparser.getToken(request.getRequestLine().getUri()))){
+            response.setStatusCode(HttpStatus.SC_BAD_REQUEST);
+        }
+        else{
+            HttpEntity entity = ((HttpEntityEnclosingRequest) request).getEntity();
+            Transaction transaction = JSONConverter.convertToTransaction(entity);
+            StringBuffer actions = new StringBuffer();
+            ResultSet rs1 = connection.execQuery("transactions", "Action", String.format("TransactionID=\"%s\";", transaction.getTransactionID()));
+            try{
+                if(rs1.next()){
+                    String pastActions = rs1.getString("Action");
+                    if(pastActions != null) {
+                        actions.append(pastActions + ",");
+                    }
+                    actions.append(String.format("%s=%s", transaction.getBookID(), transaction.getAction().charAt(0)));
+
+                    connection.execUpdate("transactions", String.format("Action=\"%s\"", actions.toString()), String.format("TransactionID=\"%s\"", transaction.getTransactionID()));
+
+                    response.setStatusCode(HttpStatus.SC_OK);
+                }
+                else{
+                    response.setStatusCode(HttpStatus.SC_BAD_REQUEST);
                 }
             }catch(SQLException e){
                 System.out.println(e);
