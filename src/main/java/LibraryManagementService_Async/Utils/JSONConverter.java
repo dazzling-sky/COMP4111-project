@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.HttpEntity;
 import org.apache.http.util.EntityUtils;
 
+import javax.swing.text.html.parser.Entity;
 import java.io.IOException;
 import java.util.List;
 
@@ -113,5 +114,12 @@ public class JSONConverter {
             System.out.println(e);
         }
         return array.toString();
+    }
+
+    public static String getAction(String entityContent){
+        String[] parts = entityContent.split(",");
+        int colonIndex = parts[1].indexOf(":");
+        int quotationIndex = parts[1].lastIndexOf("\"");
+        return parts[1].substring(colonIndex + 1, quotationIndex + 1).trim();
     }
 }
