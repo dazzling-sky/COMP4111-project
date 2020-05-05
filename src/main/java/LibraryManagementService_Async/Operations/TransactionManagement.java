@@ -3,6 +3,7 @@ package LibraryManagementService_Async.Operations;
 import LibraryManagementService_Async.Models.DBConnection;
 import LibraryManagementService_Async.Models.Transaction;
 import LibraryManagementService_Async.Utils.JSONConverter;
+import LibraryManagementService_Async.Utils.Reminder;
 import LibraryManagementService_Async.Utils.TokenGenerator;
 import LibraryManagementService_Async.Utils.URIparser;
 import org.apache.http.*;
@@ -13,9 +14,7 @@ import org.apache.http.util.EntityUtils;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class TransactionManagement {
     DBConnection connection = new DBConnection();
@@ -81,6 +80,21 @@ public class TransactionManagement {
                     actions.append(String.format("%s=%s", transaction.getBookID(), transaction.getAction().charAt(0)));
 
                     connection.execUpdate("transactions", String.format("Action=\"%s\"", actions.toString()), String.format("TransactionID=\"%s\"", transaction.getTransactionID()));
+                    if(!Reminder.exists(String.valueOf(transaction.getTransactionID()))){
+                        Reminder reminder = new Reminder(String.valueOf(transaction.getTransactionID()));
+                        Reminder.addReminders(reminder);
+                        reminder.start(20);
+                    }
+                    else{
+                        Reminder reminder = Reminder.getInstance(String.valueOf(transaction.getTransactionID()));
+                        Reminder.CheckOperationTask task = reminder.getTask();
+                        System.out.println(task.hasRunStarted());
+                        if(!task.hasRunStarted()){
+                            reminder.stop();
+                        }
+                        reminder.start(20);
+                        task.setHasStarted(false);
+                    }
 
                     response.setStatusCode(HttpStatus.SC_OK);
                 }
@@ -119,10 +133,11 @@ public class TransactionManagement {
                     System.out.println(e);
                 }
 
-                ResultSet rs2 = connection.execQuery("transactions", "Action", String.format("Access_token=\"%s\";", userToken));
+                ResultSet rs2 = connection.execQuery("transactions", "Action,TransactionID", String.format("Access_token=\"%s\";", userToken));
                 try{
                     if(rs2.next()){
                         String actions = rs2.getString("Action");
+                        String transactionID = rs2.getString("TransactionID");
                         if(actions == null){
                             response.setStatusCode(HttpStatus.SC_BAD_REQUEST);
                         }
@@ -138,7 +153,13 @@ public class TransactionManagement {
                                     else{
                                         connection.execUpdate("books", "Available=b\'1\'", String.format("ID=\"%s\";", key));
                                     }
-                                    connection.execUpdate("transactions", "Action=null", String.format("Access_token=\"%s\"", userToken));
+                                }
+                                connection.execUpdate("transactions", "Action=null", String.format("Access_token=\"%s\"", userToken));
+                                if(Reminder.exists(transactionID)){
+                                    Reminder reminder = Reminder.getInstance(transactionID);
+                                    Reminder.CheckOperationTask task = reminder.getTask();
+                                    task.setHasStarted(true);
+                                    reminder.stop();
                                 }
                                 response.setStatusCode(HttpStatus.SC_OK);
                             }
@@ -155,12 +176,19 @@ public class TransactionManagement {
                 }
             }
             else if (action.equals("\"cancel\"")){
-                ResultSet rs3 = connection.execQuery("transactions", "Action", String.format("Access_token=\"%s\";", userToken));
+                ResultSet rs3 = connection.execQuery("transactions", "Action,TransactionID", String.format("Access_token=\"%s\";", userToken));
                 try {
                     if (rs3.next()) {
                         String actions = rs3.getString("Action");
+                        String transactionID = rs3.getString("TransactionID");
                         if (actions != null) {
                             connection.execUpdate("transactions", "Action=null", String.format("Access_token=\"%s\"", userToken));
+                            if(Reminder.exists(transactionID)){
+                                Reminder reminder = Reminder.getInstance(transactionID);
+                                Reminder.CheckOperationTask task = reminder.getTask();
+                                task.setHasStarted(true);
+                                reminder.stop();
+                            }
                             response.setStatusCode(HttpStatus.SC_OK);
                         } else {
                             response.setStatusCode(HttpStatus.SC_BAD_REQUEST);

@@ -2,11 +2,8 @@ package LibraryManagementService_Async.Operations;
 
 import LibraryManagementService_Async.Models.DBConnection;
 import LibraryManagementService_Async.Models.User;
-import LibraryManagementService_Async.Utils.JSONConverter;
-import LibraryManagementService_Async.Utils.TokenGenerator;
+import LibraryManagementService_Async.Utils.*;
 
-import LibraryManagementService_Async.Utils.TransactionIdGenerator;
-import LibraryManagementService_Async.Utils.URIparser;
 import org.apache.http.*;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
@@ -60,6 +57,7 @@ public class Authentication {
                 if (bit == 1){
                     connection.execUpdate("users", "Access_token=NULL, TransactionID=NULL, is_logon=b\'0\'", String.format("Access_token=\"%s\"", token));
                     connection.execDelete("transactions", String.format("Access_token=\"%s\"", token));
+                    Reminder.removeFromRunningReminders();
                     response.setStatusCode(HttpStatus.SC_OK);
                 }
                 else{
