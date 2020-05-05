@@ -33,6 +33,9 @@ public class PUTHandler extends Handler {
                 if(entityContent.equals("")) {
                     transMgmt.requestTransactionId(request, response);
                 }
+                else{
+                    transMgmt.commitOrCancel(request, response, entityContent);
+                }
             }
 
             if(request.getRequestLine().getMethod().equals("PUT")){

@@ -45,6 +45,9 @@ public class POSTHandler extends Handler{
             if(entityContent.equals("")) {
                 transMgmt.requestTransactionId(request, response);
             }
+            else{
+                transMgmt.commitOrCancel(request, response, entityContent);
+            }
         }
     }
 }
