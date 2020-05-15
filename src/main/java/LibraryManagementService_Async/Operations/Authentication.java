@@ -16,7 +16,7 @@ public class Authentication {
 
     private DBConnection connection = new DBConnection();
 
-    public void handleLogin(HttpRequest request, HttpResponse response){
+    public synchronized void handleLogin(HttpRequest request, HttpResponse response){
         HttpEntity entity = ((HttpEntityEnclosingRequest) request).getEntity();
         User user = JSONConverter.convertToUser(entity);
         ResultSet rs1 = connection.execQuery("users", "*", String.format("Name=\"%s\" and Password=\"%s\" and Is_logon = b\'0\'", user.getUsername(), user.getPassword()));
@@ -26,9 +26,8 @@ public class Authentication {
                 String token = TokenGenerator.randomAlphaNumeric(7);
                 String transactionID = TransactionIdGenerator.generateTransID();
                 connection.execUpdate("users", String.format("Access_token=\"%s\",TransactionID=\"%s\", is_logon = b\'1\'", token, transactionID),
-                        String.format("name=\"%s\" and password=\"%s\" and is_logon = b\'0\'", user.getUsername(), user.getPassword()));
+                            String.format("name=\"%s\" and password=\"%s\" and is_logon = b\'0\'", user.getUsername(), user.getPassword()));
                 connection.execInsert("transactions", "Access_token, TransactionID", String.format("\"%s\", \"%s\"", token, transactionID));
-
                 String payload = String.format("{ \"Token\" : \"%s\"}", token);
                 StringEntity stringEntity = new StringEntity(payload, ContentType.APPLICATION_JSON);
                 response.setEntity(stringEntity);
@@ -48,7 +47,7 @@ public class Authentication {
         }
     }
 
-    public void handleLogout(HttpRequest request, HttpResponse response){
+    public synchronized void handleLogout(HttpRequest request, HttpResponse response){
         String token = URIparser.getToken(request.getRequestLine().getUri());
         ResultSet rs1 = connection.execQuery("users", "Is_logon", String.format("Access_token=\"%s\";", token));
         try{

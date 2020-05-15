@@ -35,23 +35,25 @@ public class BookManagement {
 
             try{
                 if(!rs1.next()){
-                    connection.execInsert(
-                            "books",
-                            "Title, Author, Publisher, Year, Available",
-                             String.format("\"%s\", \"%s\", \"%s\", %d, b\'1\'", book.getTitle(), book.getAuthor(), book.getPublisher(), book.getYear())
-                    );
-                    ResultSet rs2 = connection.execQuery("books", "ID", String.format("Title=\"%s\";", book.getTitle()));
-                    if(rs2.next()){
-                        int id = rs2.getInt("ID");
-                        String raw_path = request.getRequestLine().getUri();
-                        String message = String.format("Please visit %s", "http://localhost:8080" +
-                                URIparser.parsedUri(raw_path) + "/" +
-                                id + "?" +
-                                URIparser.getQueryParams(raw_path));
-                        StringEntity stringEntity = new StringEntity(message, ContentType.DEFAULT_TEXT);
-                        response.addHeader("Location", String.format("/books/%d", id));
-                        response.setEntity(stringEntity);
-                        response.setStatusCode(HttpStatus.SC_CREATED);
+                    synchronized (this){
+                        connection.execInsert(
+                                "books",
+                                "Title, Author, Publisher, Year, Available",
+                                String.format("\"%s\", \"%s\", \"%s\", %d, b\'1\'", book.getTitle(), book.getAuthor(), book.getPublisher(), book.getYear())
+                        );
+                        ResultSet rs2 = connection.execQuery("books", "ID", String.format("Title=\"%s\";", book.getTitle()));
+                        if(rs2.next()){
+                            int id = rs2.getInt("ID");
+                            String raw_path = request.getRequestLine().getUri();
+                            String message = String.format("Please visit %s", "http://localhost:8080" +
+                                    URIparser.parsedUri(raw_path) + "/" +
+                                    id + "?" +
+                                    URIparser.getQueryParams(raw_path));
+                            StringEntity stringEntity = new StringEntity(message, ContentType.DEFAULT_TEXT);
+                            response.addHeader("Location", String.format("/books/%d", id));
+                            response.setEntity(stringEntity);
+                            response.setStatusCode(HttpStatus.SC_CREATED);
+                        }
                     }
                 }
                 else{
@@ -164,7 +166,7 @@ public class BookManagement {
         return bookList;
     }
 
-    public void loanBooks(HttpRequest request, HttpResponse response){
+    public synchronized void loanBooks(HttpRequest request, HttpResponse response){
         if(!TokenGenerator.isLogin(URIparser.getToken(request.getRequestLine().getUri()))){
             response.setStatusCode(HttpStatus.SC_BAD_REQUEST);
         }
@@ -207,13 +209,13 @@ public class BookManagement {
                 try {
                     if (rs1.next()) {
                         int bit = rs1.getInt("Available");
-                        if(bit == 0){
-                            connection.execUpdate("books", "Available=1", String.format("ID=%d;", id));
-                            response.setStatusCode(HttpStatus.SC_OK);
-                        }
-                        else{
-                            response.setStatusCode(HttpStatus.SC_BAD_REQUEST);
-                        }
+                            if(bit == 0){
+                                connection.execUpdate("books", "Available=1", String.format("ID=%d;", id));
+                                response.setStatusCode(HttpStatus.SC_OK);
+                            }
+                            else{
+                                response.setStatusCode(HttpStatus.SC_BAD_REQUEST);
+                            }
                     }
                     else{
                         response.setStatusLine(HttpVersion.HTTP_1_1, 404, "No book record");
@@ -225,7 +227,7 @@ public class BookManagement {
         }
     }
 
-    public void deleteBooks(HttpRequest request, HttpResponse response){
+    public synchronized void deleteBooks(HttpRequest request, HttpResponse response){
         if(!TokenGenerator.isLogin(URIparser.getToken(request.getRequestLine().getUri()))){
             response.setStatusCode(HttpStatus.SC_BAD_REQUEST);
         }
@@ -234,7 +236,9 @@ public class BookManagement {
             try{
                 ResultSet rs1 = connection.execQuery("books", "*", String.format("ID=%d", id));
                 if(rs1.next()){
-                    connection.execDelete("books", String.format("ID=%d", id));
+                    synchronized (this){
+                        connection.execDelete("books", String.format("ID=%d", id));
+                    }
                     response.setStatusCode(HttpStatus.SC_OK);
                 }
                 else{

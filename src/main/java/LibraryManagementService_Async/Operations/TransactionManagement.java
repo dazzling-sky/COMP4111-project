@@ -62,7 +62,7 @@ public class TransactionManagement {
         }
     }
 
-    public void prepareOperations(HttpRequest request, HttpResponse response){
+    public synchronized void prepareOperations(HttpRequest request, HttpResponse response){
         if(!TokenGenerator.isLogin(URIparser.getToken(request.getRequestLine().getUri()))){
             response.setStatusCode(HttpStatus.SC_BAD_REQUEST);
         }
@@ -83,7 +83,7 @@ public class TransactionManagement {
                     if(!Reminder.exists(String.valueOf(transaction.getTransactionID()))){
                         Reminder reminder = new Reminder(String.valueOf(transaction.getTransactionID()));
                         Reminder.addReminders(reminder);
-                        reminder.start(20);
+                        reminder.start(120);
                     }
                     else{
                         Reminder reminder = Reminder.getInstance(String.valueOf(transaction.getTransactionID()));
@@ -92,7 +92,7 @@ public class TransactionManagement {
                         if(!task.hasRunStarted()){
                             reminder.stop();
                         }
-                        reminder.start(20);
+                        reminder.start(120);
                         task.setHasStarted(false);
                     }
 
@@ -107,7 +107,7 @@ public class TransactionManagement {
         }
     }
 
-    public void commitOrCancel(HttpRequest request, HttpResponse response, String entityContent){
+    public synchronized void commitOrCancel(HttpRequest request, HttpResponse response, String entityContent){
         if(!TokenGenerator.isLogin(URIparser.getToken(request.getRequestLine().getUri()))){
             response.setStatusCode(HttpStatus.SC_BAD_REQUEST);
         }
