@@ -6,11 +6,25 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.protocol.HttpContext;
 
-import java.io.IOException;
-
+/**
+ * Class that handles all HTTP requests with DELETE method
+ */
 public class DELETEHandler extends Handler{
-    BookManagement bookMgmt = new BookManagement();
 
+    /**
+     * An instance of BookManagement Class that handles
+     * tasks related to books
+     * @see BookManagement
+     */
+    private BookManagement bookMgmt = new BookManagement();
+
+    /**
+     * Method that handles all DELETE HTTP requests
+     *
+     * @param request HTTP request sent by the client (librarian)
+     * @param response HTTP response that needs to be returned back to the client (librarian)
+     * @param context represents execution state of an HTTP process
+     */
     @Override
     public void handleInternal(HttpRequest request, HttpResponse response, HttpContext context) {
         // Handle Delete method only
