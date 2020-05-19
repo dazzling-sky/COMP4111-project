@@ -19,12 +19,24 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-
+/**
+ * Class that handles all operations related to book management
+ */
 public class BookManagement {
 
+    /**
+     * An instance of DBConnection Class that handles all read/write operations within mysql database
+     */
     private DBConnection connection = new DBConnection();
 
-    public void addBooks(HttpRequest request, HttpResponse response){
+    /**
+     * Method that handles addition of books within "books" table of mysql database
+     *
+     * @param request HTTP request sent by the client (librarian)
+     * @param response HTTP response that needs to be returned back to the client (librarian)
+     * @throws SQLException if wrong SQL statement is provided to the database
+     */
+    public synchronized void addBooks(HttpRequest request, HttpResponse response){
         if(!TokenGenerator.isLogin(URIparser.getToken(request.getRequestLine().getUri()))){
             response.setStatusCode(HttpStatus.SC_BAD_REQUEST);
         }
@@ -35,7 +47,6 @@ public class BookManagement {
 
             try{
                 if(!rs1.next()){
-                    synchronized (this){
                         connection.execInsert(
                                 "books",
                                 "Title, Author, Publisher, Year, Available",
@@ -54,7 +65,6 @@ public class BookManagement {
                             response.setEntity(stringEntity);
                             response.setStatusCode(HttpStatus.SC_CREATED);
                         }
-                    }
                 }
                 else{
                     ResultSet rs3 = connection.execQuery("books", "ID", String.format("Title=\"%s\";", book.getTitle()));
@@ -69,6 +79,13 @@ public class BookManagement {
         }
     }
 
+    /**
+     * Method that handles look-up of books within "books" table of mysql database
+     *
+     * @param request HTTP request sent by the client (librarian)
+     * @param response HTTP response that needs to be returned back to the client (librarian)
+     * @throws SQLException if wrong SQL statement is provided to the database
+     */
     public void lookBooks(HttpRequest request, HttpResponse response){
         if(!TokenGenerator.isLogin(URIparser.getToken(request.getRequestLine().getUri()))){
             response.setStatusCode(HttpStatus.SC_BAD_REQUEST);
@@ -138,6 +155,13 @@ public class BookManagement {
         }
     }
 
+    /**
+     * Method that sorts books according to the input parameters given by HTTP request
+     *
+     * @param bookList list of books that needs be sorted
+     * @param paramsMap key-value pair that represents all input parameters within HTTP request
+     * @return list of books in a sorted order
+     */
     public List<Book> sortBooks(List<Book> bookList, Map<String, String> paramsMap){
         String sortBy = "id"; String order = "asc";
         for(String key: paramsMap.keySet()){
@@ -166,6 +190,13 @@ public class BookManagement {
         return bookList;
     }
 
+    /**
+     * Method that allows loaning of books by clients (librarians)
+     *
+     * @param request HTTP request sent by the client (librarian)
+     * @param response HTTP response that needs to be returned back to the client (librarian)
+     * @throws SQLException if wrong SQL statement is provided to the database
+     */
     public synchronized void loanBooks(HttpRequest request, HttpResponse response){
         if(!TokenGenerator.isLogin(URIparser.getToken(request.getRequestLine().getUri()))){
             response.setStatusCode(HttpStatus.SC_BAD_REQUEST);
@@ -227,6 +258,13 @@ public class BookManagement {
         }
     }
 
+    /**
+     * Method that handles deletion of books by clients (librarians)
+     *
+     * @param request HTTP request sent by the client (librarian)
+     * @param response HTTP response that needs to be returned back to the client (librarian)
+     * @throws SQLException if wrong SQL statement is provided to the database
+     */
     public synchronized void deleteBooks(HttpRequest request, HttpResponse response){
         if(!TokenGenerator.isLogin(URIparser.getToken(request.getRequestLine().getUri()))){
             response.setStatusCode(HttpStatus.SC_BAD_REQUEST);
@@ -236,9 +274,7 @@ public class BookManagement {
             try{
                 ResultSet rs1 = connection.execQuery("books", "*", String.format("ID=%d", id));
                 if(rs1.next()){
-                    synchronized (this){
-                        connection.execDelete("books", String.format("ID=%d", id));
-                    }
+                    connection.execDelete("books", String.format("ID=%d", id));
                     response.setStatusCode(HttpStatus.SC_OK);
                 }
                 else{

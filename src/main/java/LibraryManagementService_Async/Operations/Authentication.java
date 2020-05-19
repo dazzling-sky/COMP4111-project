@@ -12,10 +12,23 @@ import org.apache.http.entity.StringEntity;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+/**
+ * Class that handles all operations related to User Authentication
+ */
 public class Authentication {
 
+    /**
+     * An instance of DBConnection Class that handles all read/write operations within mysql database
+     */
     private DBConnection connection = new DBConnection();
 
+    /**
+     * Method that handles User-login
+     *
+     * @param request HTTP request sent by the client (librarian)
+     * @param response HTTP response that needs to be returned back to the client (librarian)
+     * @throws SQLException if wrong SQL statement is provided to the database
+     */
     public synchronized void handleLogin(HttpRequest request, HttpResponse response){
         HttpEntity entity = ((HttpEntityEnclosingRequest) request).getEntity();
         User user = JSONConverter.convertToUser(entity);
@@ -47,6 +60,13 @@ public class Authentication {
         }
     }
 
+    /**
+     * Method that handles User-logout
+     *
+     * @param request HTTP request sent by the client (librarian)
+     * @param response HTTP response that needs to be returned back to the client (librarian)
+     * @throws SQLException if wrong SQL statement is provided to the database
+     */
     public synchronized void handleLogout(HttpRequest request, HttpResponse response){
         String token = URIparser.getToken(request.getRequestLine().getUri());
         ResultSet rs1 = connection.execQuery("users", "Is_logon", String.format("Access_token=\"%s\";", token));
