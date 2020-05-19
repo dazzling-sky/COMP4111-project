@@ -15,6 +15,7 @@ public class GETHandler extends Handler {
     /**
      * An instance of Authentication Class that handles
      * tasks related to user login/logout
+     *
      * @see Authentication
      */
     Authentication auth = new Authentication();
@@ -22,6 +23,7 @@ public class GETHandler extends Handler {
     /**
      * An instance of BookManagement Class that handles
      * tasks related to books
+     *
      * @see BookManagement
      */
     BookManagement bookMgmt = new BookManagement();

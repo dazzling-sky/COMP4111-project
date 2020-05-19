@@ -12,12 +12,24 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.HttpEntity;
 import org.apache.http.util.EntityUtils;
 
-import javax.swing.text.html.parser.Entity;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * Class that handles conversion of all JSON entities into corresponding Class
+ */
 public class JSONConverter {
 
+    /**
+     * A static method that converts a given entity into a User Class
+     *
+     * @param entity JSON entity within HTTP request
+     * @return a User instance
+     * @throws JsonMappingException if the entity is not mapped properly
+     * @throws JsonGenerationException if entity is converted in wrong context
+     * @throws JsonProcessingException if parsing cannot be completed for JSON entity
+     * @throws IOException if entity cannot be read into a string
+     */
     public static User convertToUser(HttpEntity entity){
         try{
             String entityContent = EntityUtils.toString(entity);
@@ -38,6 +50,16 @@ public class JSONConverter {
         return null;
     }
 
+    /**
+     * A static method that converts a given entity into a Book Class
+     *
+     * @param entity JSON entity within HTTP request
+     * @return a Book instance
+     * @throws JsonMappingException if the entity is not mapped properly
+     * @throws JsonGenerationException if entity is converted in wrong context
+     * @throws JsonProcessingException if parsing cannot be completed for JSON entity
+     * @throws IOException if entity cannot be read into a string
+     */
     public static Book convertToBook(HttpEntity entity){
         try{
             String entityContent = EntityUtils.toString(entity);
@@ -58,6 +80,16 @@ public class JSONConverter {
         return null;
     }
 
+    /**
+     * A static method that converts a given entity into a Transaction Class
+     *
+     * @param entity JSON entity within HTTP request
+     * @return a Transaction instance
+     * @throws JsonMappingException if the entity is not mapped properly
+     * @throws JsonGenerationException if entity is converted in wrong context
+     * @throws JsonProcessingException if parsing cannot be completed for JSON entity
+     * @throws IOException if entity cannot be read into a string
+     */
     public static Transaction convertToTransaction(HttpEntity entity){
         try{
             String entityContent = EntityUtils.toString(entity);
@@ -78,6 +110,17 @@ public class JSONConverter {
         return null;
     }
 
+    /**
+     * A static method that produces ordered list of books in the form of JSON entity
+     *
+     * @param bookList list of books that needs to be added as an entity
+     * @param limit maximum number of books that can be displayed as an entity
+     * @return a string that contains array of books to be displayed
+     * @throws JsonMappingException if the entity is not mapped properly
+     * @throws JsonGenerationException if entity is converted in wrong context
+     * @throws JsonProcessingException if parsing cannot be completed for JSON entity
+     * @throws IOException if entity cannot be read into a string
+     */
     public static String produceBookListContent(List<Book> bookList, int limit){
         StringBuffer array = new StringBuffer(); array.append("[");
         try{
@@ -116,6 +159,12 @@ public class JSONConverter {
         return array.toString();
     }
 
+    /**
+     * A static method that retrieves operations for a given transaction within an entity of HTTP request
+     *
+     * @param entityContent content of an entity
+     * @return a string that contains all actions that needs to be completed
+     */
     public static String getAction(String entityContent){
         String[] parts = entityContent.split(",");
         int colonIndex = parts[1].indexOf(":");

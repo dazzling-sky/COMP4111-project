@@ -18,6 +18,7 @@ public class POSTHandler extends Handler{
     /**
      * An instance of Authentication Class that handles
      * tasks related to user login/logout
+     *
      * @see Authentication
      */
     Authentication auth = new Authentication();
@@ -25,6 +26,7 @@ public class POSTHandler extends Handler{
     /**
      * An instance of BookManagement Class that handles
      * tasks related to books
+     *
      * @see BookManagement
      */
     BookManagement bookMgmt = new BookManagement();
@@ -32,6 +34,7 @@ public class POSTHandler extends Handler{
     /**
      * An instance of TransactionManagement Class that handles
      * tasks related to book transactions
+     *
      * @see TransactionManagement
      */
     TransactionManagement transMgmt = new TransactionManagement();

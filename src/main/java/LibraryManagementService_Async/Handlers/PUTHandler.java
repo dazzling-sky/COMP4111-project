@@ -19,6 +19,7 @@ public class PUTHandler extends Handler {
     /**
      * An instance of BookManagement Class that handles
      * tasks related to books
+     *
      * @see BookManagement
      */
     BookManagement bookMgmt = new BookManagement();
@@ -26,6 +27,7 @@ public class PUTHandler extends Handler {
     /**
      * An instance of TransactionManagement Class that handles
      * tasks related to book transactions
+     *
      * @see TransactionManagement
      */
     TransactionManagement transMgmt = new TransactionManagement();
