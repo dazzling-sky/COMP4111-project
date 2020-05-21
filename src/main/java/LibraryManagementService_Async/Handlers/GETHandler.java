@@ -5,6 +5,7 @@ import LibraryManagementService_Async.Operations.BookManagement;
 import LibraryManagementService_Async.Utils.URIparser;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
 import org.apache.http.protocol.HttpContext;
 
 /**
@@ -46,9 +47,12 @@ public class GETHandler extends Handler {
         }
 
         // Handle book lookup
-        if(URIparser.parsedUri(raw_path).equals("/BookManagementService/books")){
+        else if(URIparser.parsedUri(raw_path).equals("/BookManagementService/books")){
             bookMgmt.lookBooks(request, response);
         }
 
+        else{
+            response.setStatusCode(HttpStatus.SC_BAD_REQUEST);
+        }
     }
 }

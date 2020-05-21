@@ -45,5 +45,35 @@ public class Transaction {
     public String getAction() {
         return action;
     }
+
+    /**
+     * This method determines if there are any null fields for a Transaction instance
+     *
+     * @return false if there are no null fields, otherwise, true
+     */
+    public boolean containsNullField(){
+        try{
+            if(!(transactionID == 0) && !(bookID == 0) && !action.equals("null")){
+                return false;
+            }
+        }catch(NullPointerException e){
+            System.out.println(e);
+            return true;
+        }
+        return true;
+    }
+
+    /**
+     * This method checks if appropriate action has been given for a transaction
+     *
+     * @return false if there is an invalid action, otherwise, true
+     */
+    public boolean containsValidAction(){
+        if(action.equals("return") || action.equals("loan")){
+            return true;
+        }
+
+        return false;
+    }
 }
 

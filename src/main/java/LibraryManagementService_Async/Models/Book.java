@@ -41,6 +41,11 @@ public class Book implements Comparable<Book>{
     private int id;
 
     /**
+     * Default constructor for Book Class
+     */
+    public Book(){}
+
+    /**
      * User-defined constructor for Book Class
      *
      * @param title indicates title of the book
@@ -55,6 +60,22 @@ public class Book implements Comparable<Book>{
         this.publisher = publisher;
         this.year = year;
         this.id = id;
+    }
+
+    /**
+     * This method determines if there are any null fields for a Book instance
+     * @return false if there are no null fields, otherwise, true
+     */
+    public boolean containsNullField(){
+        try{
+            if(!title.equals("null") && !author.equals("null") && !publisher.equals("null") && !(year == 0)){
+                return false;
+            }
+        }catch(NullPointerException e){
+            System.out.println(e);
+            return true;
+        }
+        return true;
     }
 
     /**

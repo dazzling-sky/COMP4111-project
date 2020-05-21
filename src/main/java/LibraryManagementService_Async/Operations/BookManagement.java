@@ -43,10 +43,14 @@ public class BookManagement {
         else{
             HttpEntity entity = ((HttpEntityEnclosingRequest) request).getEntity();
             Book book = JSONConverter.convertToBook(entity);
-            ResultSet rs1 = connection.execQuery("books", "*", String.format("Title=\"%s\";", book.getTitle()));
+            if(book.containsNullField()){
+                response.setStatusCode(HttpStatus.SC_BAD_REQUEST);
+            }
+            else{
+                ResultSet rs1 = connection.execQuery("books", "*", String.format("Title=\"%s\";", book.getTitle()));
 
-            try{
-                if(!rs1.next()){
+                try{
+                    if(!rs1.next()){
                         connection.execInsert(
                                 "books",
                                 "Title, Author, Publisher, Year, Available",
@@ -65,16 +69,17 @@ public class BookManagement {
                             response.setEntity(stringEntity);
                             response.setStatusCode(HttpStatus.SC_CREATED);
                         }
+                    }
+                    else{
+                        ResultSet rs3 = connection.execQuery("books", "ID", String.format("Title=\"%s\";", book.getTitle()));
+                        rs3.next();
+                        int id = rs3.getInt("ID");
+                        response.addHeader("Duplicate record", String.format("/books/%d", id));
+                        response.setStatusCode(HttpStatus.SC_CONFLICT);
+                    }
+                }catch(SQLException e){
+                    System.out.println(e);
                 }
-                else{
-                    ResultSet rs3 = connection.execQuery("books", "ID", String.format("Title=\"%s\";", book.getTitle()));
-                    rs3.next();
-                    int id = rs3.getInt("ID");
-                    response.addHeader("Duplicate record", String.format("/books/%d", id));
-                    response.setStatusCode(HttpStatus.SC_CONFLICT);
-                }
-            }catch(SQLException e){
-                System.out.println(e);
             }
         }
     }
@@ -214,6 +219,8 @@ public class BookManagement {
             int closingIndex = entityContent.indexOf("}");
             String available = entityContent.substring(valueIndex + 1, closingIndex).trim();
 
+            System.out.println(available);
+
             if(available.equals("false")){
                 ResultSet rs1 = connection.execQuery("books", "*", String.format("ID=%d;", id));
                 try{
@@ -234,8 +241,7 @@ public class BookManagement {
                     System.out.println(e);
                 }
             }
-
-            if(available.equals("true")){
+            else if(available.equals("true")){
                 ResultSet rs1 = connection.execQuery("books", "*", String.format("ID=%d;", id));
                 try {
                     if (rs1.next()) {
@@ -254,6 +260,9 @@ public class BookManagement {
                 }catch(SQLException e){
                     System.out.println(e);
                 }
+            }
+            else{
+                response.setStatusCode(HttpStatus.SC_BAD_REQUEST);
             }
         }
     }

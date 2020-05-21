@@ -90,40 +90,49 @@ public class TransactionManagement {
         else{
             HttpEntity entity = ((HttpEntityEnclosingRequest) request).getEntity();
             Transaction transaction = JSONConverter.convertToTransaction(entity);
-            StringBuffer actions = new StringBuffer();
-            ResultSet rs1 = connection.execQuery("transactions", "Action", String.format("TransactionID=\"%s\";", transaction.getTransactionID()));
-            try{
-                if(rs1.next()){
-                    String pastActions = rs1.getString("Action");
-                    if(pastActions != null) {
-                        actions.append(pastActions + ",");
-                    }
-                    actions.append(String.format("%s=%s", transaction.getBookID(), transaction.getAction().charAt(0)));
 
-                    connection.execUpdate("transactions", String.format("Action=\"%s\"", actions.toString()), String.format("TransactionID=\"%s\"", transaction.getTransactionID()));
-                    if(!Reminder.exists(String.valueOf(transaction.getTransactionID()))){
-                        Reminder reminder = new Reminder(String.valueOf(transaction.getTransactionID()));
-                        Reminder.addReminders(reminder);
-                        reminder.start(120);
+            if (transaction.containsNullField()){
+                response.setStatusCode(HttpStatus.SC_BAD_REQUEST);
+            }
+            else if (!transaction.containsValidAction()){
+                response.setStatusCode(HttpStatus.SC_BAD_REQUEST);
+            }
+            else{
+                StringBuffer actions = new StringBuffer();
+                ResultSet rs1 = connection.execQuery("transactions", "Action", String.format("TransactionID=\"%s\";", transaction.getTransactionID()));
+                try{
+                    if(rs1.next()){
+                        String pastActions = rs1.getString("Action");
+                        if(pastActions != null) {
+                            actions.append(pastActions + ",");
+                        }
+                        actions.append(String.format("%s=%s", transaction.getBookID(), transaction.getAction().charAt(0)));
+
+                        connection.execUpdate("transactions", String.format("Action=\"%s\"", actions.toString()), String.format("TransactionID=\"%s\"", transaction.getTransactionID()));
+                        if(!Reminder.exists(String.valueOf(transaction.getTransactionID()))){
+                            Reminder reminder = new Reminder(String.valueOf(transaction.getTransactionID()));
+                            Reminder.addReminders(reminder);
+                            reminder.start(120);
+                        }
+                        else{
+                            Reminder reminder = Reminder.getInstance(String.valueOf(transaction.getTransactionID()));
+                            Reminder.CheckOperationTask task = reminder.getTask();
+                            System.out.println(task.hasRunStarted());
+                            if(!task.hasRunStarted()){
+                                reminder.stop();
+                            }
+                            reminder.start(120);
+                            task.setHasStarted(false);
+                        }
+
+                        response.setStatusCode(HttpStatus.SC_OK);
                     }
                     else{
-                        Reminder reminder = Reminder.getInstance(String.valueOf(transaction.getTransactionID()));
-                        Reminder.CheckOperationTask task = reminder.getTask();
-                        System.out.println(task.hasRunStarted());
-                        if(!task.hasRunStarted()){
-                            reminder.stop();
-                        }
-                        reminder.start(120);
-                        task.setHasStarted(false);
+                        response.setStatusCode(HttpStatus.SC_BAD_REQUEST);
                     }
-
-                    response.setStatusCode(HttpStatus.SC_OK);
+                }catch(SQLException e){
+                    System.out.println(e);
                 }
-                else{
-                    response.setStatusCode(HttpStatus.SC_BAD_REQUEST);
-                }
-            }catch(SQLException e){
-                System.out.println(e);
             }
         }
     }
@@ -141,48 +150,87 @@ public class TransactionManagement {
             response.setStatusCode(HttpStatus.SC_BAD_REQUEST);
         }
         else{
-            String action = JSONConverter.getAction(entityContent);
-            String userToken = URIparser.getToken(request.getRequestLine().getUri());
+            String entityTransactionID = JSONConverter.getTransactionID((entityContent));
 
-            if(action.equals("\"commit\"")){
-                ResultSet rs1 = connection.execQuery("books", "ID,Available", "");
-                Map<Integer, Boolean> bookAvailability = new HashMap<>();
-                try{
-                    while(rs1.next()){
-                        int bookID = rs1.getInt("ID");
-                        int available = rs1.getInt("Available");
-                        if (available == 0){
-                            bookAvailability.put(bookID, false);
+            if(entityTransactionID.equals("null")){
+                response.setStatusCode(HttpStatus.SC_BAD_REQUEST);
+            }
+            else if(!containsValidTransactionID(URIparser.getToken(request.getRequestLine().getUri()), entityTransactionID)){
+                response.setStatusCode(HttpStatus.SC_BAD_REQUEST);
+            }
+            else{
+                String action = JSONConverter.getTransactionAction(entityContent);
+                String userToken = URIparser.getToken(request.getRequestLine().getUri());
+
+                if(action.equals("\"commit\"")){
+                    ResultSet rs1 = connection.execQuery("books", "ID,Available", "");
+                    Map<Integer, Boolean> bookAvailability = new HashMap<>();
+                    try{
+                        while(rs1.next()){
+                            int bookID = rs1.getInt("ID");
+                            int available = rs1.getInt("Available");
+                            if (available == 0){
+                                bookAvailability.put(bookID, false);
+                            }
+                            else{
+                                bookAvailability.put(bookID, true);
+                            }
+                        }
+                    }catch(SQLException e){
+                        System.out.println(e);
+                    }
+
+                    ResultSet rs2 = connection.execQuery("transactions", "Action,TransactionID", String.format("Access_token=\"%s\";", userToken));
+                    try{
+                        if(rs2.next()){
+                            String actions = rs2.getString("Action");
+                            String transactionID = rs2.getString("TransactionID");
+                            if(actions.equals("null")){
+                                response.setStatusCode(HttpStatus.SC_BAD_REQUEST);
+                            }
+                            else{
+                                String[] idActionPair = actions.split(",");
+                                Map<Boolean, Map<Integer,Boolean>> result = isValidTransaction(bookAvailability, idActionPair);
+                                if (result.containsKey(true)){
+
+                                    for (Integer key: result.get(true).keySet()){
+                                        if (result.get(true).get(key) == false){
+                                            connection.execUpdate("books", "Available=b\'0\'", String.format("ID=\"%s\";", key));
+                                        }
+                                        else{
+                                            connection.execUpdate("books", "Available=b\'1\'", String.format("ID=\"%s\";", key));
+                                        }
+                                    }
+                                    connection.execUpdate("transactions", "Action=null", String.format("Access_token=\"%s\"", userToken));
+                                    if(Reminder.exists(transactionID)){
+                                        Reminder reminder = Reminder.getInstance(transactionID);
+                                        Reminder.CheckOperationTask task = reminder.getTask();
+                                        task.setHasStarted(true);
+                                        reminder.stop();
+                                    }
+                                    response.setStatusCode(HttpStatus.SC_OK);
+                                }
+                                else{
+                                    response.setStatusCode(HttpStatus.SC_BAD_REQUEST);
+                                }
+                            }
                         }
                         else{
-                            bookAvailability.put(bookID, true);
-                        }
-                    }
-                }catch(SQLException e){
-                    System.out.println(e);
-                }
-
-                ResultSet rs2 = connection.execQuery("transactions", "Action,TransactionID", String.format("Access_token=\"%s\";", userToken));
-                try{
-                    if(rs2.next()){
-                        String actions = rs2.getString("Action");
-                        String transactionID = rs2.getString("TransactionID");
-                        if(actions == null){
                             response.setStatusCode(HttpStatus.SC_BAD_REQUEST);
                         }
-                        else{
-                            String[] idActionPair = actions.split(",");
-                            Map<Boolean, Map<Integer,Boolean>> result = isValidTransaction(bookAvailability, idActionPair);
-                            if (result.containsKey(true)){
-
-                                for (Integer key: result.get(true).keySet()){
-                                    if (result.get(true).get(key) == false){
-                                        connection.execUpdate("books", "Available=b\'0\'", String.format("ID=\"%s\";", key));
-                                    }
-                                    else{
-                                        connection.execUpdate("books", "Available=b\'1\'", String.format("ID=\"%s\";", key));
-                                    }
-                                }
+                    }catch(SQLException e){
+                        System.out.println(e);
+                    }catch(NullPointerException e){
+                        response.setStatusCode(HttpStatus.SC_BAD_REQUEST);
+                    }
+                }
+                else if (action.equals("\"cancel\"")){
+                    ResultSet rs3 = connection.execQuery("transactions", "Action,TransactionID", String.format("Access_token=\"%s\";", userToken));
+                    try {
+                        if (rs3.next()) {
+                            String actions = rs3.getString("Action");
+                            String transactionID = rs3.getString("TransactionID");
+                            if (actions != null) {
                                 connection.execUpdate("transactions", "Action=null", String.format("Access_token=\"%s\"", userToken));
                                 if(Reminder.exists(transactionID)){
                                     Reminder reminder = Reminder.getInstance(transactionID);
@@ -191,46 +239,19 @@ public class TransactionManagement {
                                     reminder.stop();
                                 }
                                 response.setStatusCode(HttpStatus.SC_OK);
-                            }
-                            else{
+                            } else {
                                 response.setStatusCode(HttpStatus.SC_BAD_REQUEST);
                             }
-                        }
-                    }
-                    else{
-                        response.setStatusCode(HttpStatus.SC_BAD_REQUEST);
-                    }
-                }catch(SQLException e){
-                    System.out.println(e);
-                }
-            }
-            else if (action.equals("\"cancel\"")){
-                ResultSet rs3 = connection.execQuery("transactions", "Action,TransactionID", String.format("Access_token=\"%s\";", userToken));
-                try {
-                    if (rs3.next()) {
-                        String actions = rs3.getString("Action");
-                        String transactionID = rs3.getString("TransactionID");
-                        if (actions != null) {
-                            connection.execUpdate("transactions", "Action=null", String.format("Access_token=\"%s\"", userToken));
-                            if(Reminder.exists(transactionID)){
-                                Reminder reminder = Reminder.getInstance(transactionID);
-                                Reminder.CheckOperationTask task = reminder.getTask();
-                                task.setHasStarted(true);
-                                reminder.stop();
-                            }
-                            response.setStatusCode(HttpStatus.SC_OK);
                         } else {
                             response.setStatusCode(HttpStatus.SC_BAD_REQUEST);
                         }
-                    } else {
-                        response.setStatusCode(HttpStatus.SC_BAD_REQUEST);
+                    }catch(SQLException e){
+                        System.out.println(e);
                     }
-                }catch(SQLException e){
-                    System.out.println(e);
                 }
-            }
-            else{
-                response.setStatusCode(HttpStatus.SC_BAD_REQUEST);
+                else{
+                    response.setStatusCode(HttpStatus.SC_BAD_REQUEST);
+                }
             }
         }
     }
@@ -279,5 +300,21 @@ public class TransactionManagement {
         }
         result.put(true, bookAvailability);
         return result;
+    }
+
+    public boolean containsValidTransactionID(String token, String transactionID){
+        ResultSet rs1 = connection.execQuery("users", "TransactionID", String.format("Access_token=\"%s\";", token));
+
+        try{
+            if(rs1.next()){
+                String id = rs1.getString("TransactionID");
+                if(id.equals(transactionID)){
+                    return true;
+                }
+            }
+        }catch(SQLException e){
+            return false;
+        }
+        return false;
     }
 }
