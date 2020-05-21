@@ -160,15 +160,26 @@ public class JSONConverter {
     }
 
     /**
-     * A static method that retrieves operations for a given transaction within an entity of HTTP request
+     * A static method that retrieves transaction ID within JSON entity of HTTP request
+     * @param entityContent content of an entity
+     * @return a string that contains transaction ID of a user
+     */
+    public static String getTransactionID(String entityContent){
+        String[] parts = entityContent.split(",");
+        int colonIndex = parts[0].indexOf(":");
+        return parts[0].substring(colonIndex + 1).trim();
+    }
+
+    /**
+     * A static method that retrieves operations for a given transaction within JSON entity of HTTP request
      *
      * @param entityContent content of an entity
      * @return a string that contains all actions that needs to be completed
      */
-    public static String getAction(String entityContent){
+    public static String getTransactionAction(String entityContent){
         String[] parts = entityContent.split(",");
         int colonIndex = parts[1].indexOf(":");
-        int quotationIndex = parts[1].lastIndexOf("\"");
-        return parts[1].substring(colonIndex + 1, quotationIndex + 1).trim();
+        int closingBracketIndex = parts[1].lastIndexOf("}");
+        return parts[1].substring(colonIndex + 1, closingBracketIndex).trim();
     }
 }

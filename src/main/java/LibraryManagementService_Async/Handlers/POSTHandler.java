@@ -78,5 +78,9 @@ public class POSTHandler extends Handler{
                 transMgmt.commitOrCancel(request, response, entityContent);
             }
         }
+
+        else{
+            response.setStatusCode(HttpStatus.SC_BAD_REQUEST);
+        }
     }
 }

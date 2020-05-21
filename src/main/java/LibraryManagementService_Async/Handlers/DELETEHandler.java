@@ -4,6 +4,7 @@ import LibraryManagementService_Async.Operations.BookManagement;
 import LibraryManagementService_Async.Utils.URIparser;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
 import org.apache.http.protocol.HttpContext;
 
 /**
@@ -38,6 +39,9 @@ public class DELETEHandler extends Handler{
            if(request.getRequestLine().getMethod().equals("DELETE")){
                bookMgmt.deleteBooks(request, response);
            }
+        }
+        else{
+            response.setStatusCode(HttpStatus.SC_BAD_REQUEST);
         }
     }
 }

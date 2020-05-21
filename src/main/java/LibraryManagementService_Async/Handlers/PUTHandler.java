@@ -6,6 +6,7 @@ import LibraryManagementService_Async.Utils.URIparser;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 
@@ -66,6 +67,10 @@ public class PUTHandler extends Handler {
             if(request.getRequestLine().getMethod().equals("PUT")){
                 transMgmt.prepareOperations(request, response);
             }
+        }
+
+        else{
+            response.setStatusCode(HttpStatus.SC_BAD_REQUEST);
         }
     }
 }
