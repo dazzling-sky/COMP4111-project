@@ -29,7 +29,7 @@ public class Authentication {
      * @param response HTTP response that needs to be returned back to the client (librarian)
      * @throws SQLException if wrong SQL statement is provided to the database
      */
-    public synchronized void handleLogin(HttpRequest request, HttpResponse response){
+    public void handleLogin(HttpRequest request, HttpResponse response){
         HttpEntity entity = ((HttpEntityEnclosingRequest) request).getEntity();
         User user = JSONConverter.convertToUser(entity);
         ResultSet rs1 = connection.execQuery("users", "*", String.format("Name=\"%s\" and Password=\"%s\" and Is_logon = b\'0\'", user.getUsername(), user.getPassword()));
@@ -57,6 +57,8 @@ public class Authentication {
             }
         }catch(SQLException e){
             System.out.println(e);
+        }catch(NullPointerException e){
+            response.setStatusCode(HttpStatus.SC_BAD_REQUEST);
         }
     }
 
@@ -67,7 +69,7 @@ public class Authentication {
      * @param response HTTP response that needs to be returned back to the client (librarian)
      * @throws SQLException if wrong SQL statement is provided to the database
      */
-    public synchronized void handleLogout(HttpRequest request, HttpResponse response){
+    public void handleLogout(HttpRequest request, HttpResponse response){
         String token = URIparser.getToken(request.getRequestLine().getUri());
         ResultSet rs1 = connection.execQuery("users", "Is_logon", String.format("Access_token=\"%s\";", token));
         try{

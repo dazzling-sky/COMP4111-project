@@ -10,17 +10,6 @@ CREATE TABLE users (
     Is_logon bit NOT NULL DEFAULT b'0'
 );
 
-INSERT INTO users (name, password) VALUES ("user001", "pass001");
-INSERT INTO users (name, password) VALUES ("user002", "pass002");
-INSERT INTO users (name, password) VALUES ("user003", "pass003");
-INSERT INTO users (name, password) VALUES ("user004", "pass004");
-INSERT INTO users (name, password) VALUES ("user005", "pass005");
-INSERT INTO users (name, password) VALUES ("user006", "pass006");
-INSERT INTO users (name, password) VALUES ("user007", "pass007");
-INSERT INTO users (name, password) VALUES ("user008", "pass008");
-INSERT INTO users (name, password) VALUES ("user009", "pass009");
-INSERT INTO users (name, password) VALUES ("user010", "pass010");
-
 CREATE TABLE books (
     ID int PRIMARY KEY AUTO_INCREMENT,
     Title varchar(100) NOT NULL UNIQUE,
