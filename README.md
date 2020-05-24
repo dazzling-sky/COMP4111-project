@@ -7,6 +7,9 @@
 
 - MySQL Server 5.7
     - [MySQL Database] (https://www.mysql.com/downloads/)
+    
+- NaviCat (GUI database manager)
+    - [NaviCat for MySQL] (https://www.navicat.com/en/products/navicat-for-mysql?gclid=CjwKCAjwtqj2BRBYEiwAqfzur09zJNbbEqwdvuF9uLzWuNvxjHyRfzEI2TLLBBT0W10ic8LwBm8LDRoCuAoQAvD_BwE)
 
 # Running the Project
 
