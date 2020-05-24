@@ -83,7 +83,7 @@ public class TransactionManagement {
      * @param response HTTP response that needs to be returned back to the client (librarian)
      * @throws SQLException if wrong SQL statement is provided to the database
      */
-    public synchronized void prepareOperations(HttpRequest request, HttpResponse response){
+    public void prepareOperations(HttpRequest request, HttpResponse response){
         if(!TokenGenerator.isLogin(URIparser.getToken(request.getRequestLine().getUri()))){
             response.setStatusCode(HttpStatus.SC_BAD_REQUEST);
         }
@@ -145,7 +145,7 @@ public class TransactionManagement {
      * @param entityContent HTTP request body that needs to be parsed
      * @throws SQLException if wrong SQL statement is provided to the database
      */
-    public synchronized void commitOrCancel(HttpRequest request, HttpResponse response, String entityContent){
+    public void commitOrCancel(HttpRequest request, HttpResponse response, String entityContent){
         if(!TokenGenerator.isLogin(URIparser.getToken(request.getRequestLine().getUri()))){
             response.setStatusCode(HttpStatus.SC_BAD_REQUEST);
         }

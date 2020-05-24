@@ -33,7 +33,7 @@ public class Book implements Comparable<Book>{
      * Year the book was published
      */
     @JsonProperty("Year")
-    private int year;
+    private Integer year;
 
     /**
      * ID of the book within mysql database
@@ -75,6 +75,7 @@ public class Book implements Comparable<Book>{
             System.out.println(e);
             return true;
         }
+        System.out.println(title);
         return true;
     }
 

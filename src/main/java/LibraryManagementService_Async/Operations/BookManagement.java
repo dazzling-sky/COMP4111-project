@@ -36,50 +36,54 @@ public class BookManagement {
      * @param response HTTP response that needs to be returned back to the client (librarian)
      * @throws SQLException if wrong SQL statement is provided to the database
      */
-    public synchronized void addBooks(HttpRequest request, HttpResponse response){
+    public void addBooks(HttpRequest request, HttpResponse response){
         if(!TokenGenerator.isLogin(URIparser.getToken(request.getRequestLine().getUri()))){
             response.setStatusCode(HttpStatus.SC_BAD_REQUEST);
         }
         else{
             HttpEntity entity = ((HttpEntityEnclosingRequest) request).getEntity();
             Book book = JSONConverter.convertToBook(entity);
-            if(book.containsNullField()){
-                response.setStatusCode(HttpStatus.SC_BAD_REQUEST);
-            }
-            else{
-                ResultSet rs1 = connection.execQuery("books", "*", String.format("Title=\"%s\";", book.getTitle()));
-
-                try{
-                    if(!rs1.next()){
-                        connection.execInsert(
-                                "books",
-                                "Title, Author, Publisher, Year, Available",
-                                String.format("\"%s\", \"%s\", \"%s\", %d, b\'1\'", book.getTitle(), book.getAuthor(), book.getPublisher(), book.getYear())
-                        );
-                        ResultSet rs2 = connection.execQuery("books", "ID", String.format("Title=\"%s\";", book.getTitle()));
-                        if(rs2.next()){
-                            int id = rs2.getInt("ID");
-                            String raw_path = request.getRequestLine().getUri();
-                            String message = String.format("Please visit %s", "http://localhost:8080" +
-                                    URIparser.parsedUri(raw_path) + "/" +
-                                    id + "?" +
-                                    URIparser.getQueryParams(raw_path));
-                            StringEntity stringEntity = new StringEntity(message, ContentType.DEFAULT_TEXT);
-                            response.addHeader("Location", String.format("/books/%d", id));
-                            response.setEntity(stringEntity);
-                            response.setStatusCode(HttpStatus.SC_CREATED);
-                        }
-                    }
-                    else{
-                        ResultSet rs3 = connection.execQuery("books", "ID", String.format("Title=\"%s\";", book.getTitle()));
-                        rs3.next();
-                        int id = rs3.getInt("ID");
-                        response.addHeader("Duplicate record", String.format("/books/%d", id));
-                        response.setStatusCode(HttpStatus.SC_CONFLICT);
-                    }
-                }catch(SQLException e){
-                    System.out.println(e);
+            try{
+                if(book.containsNullField()){
+                    response.setStatusCode(HttpStatus.SC_BAD_REQUEST);
                 }
+                else{
+                    ResultSet rs1 = connection.execQuery("books", "*", String.format("Title=\"%s\";", book.getTitle()));
+
+                    try{
+                        if(!rs1.next()){
+                            connection.execInsert(
+                                    "books",
+                                    "Title, Author, Publisher, Year, Available",
+                                    String.format("\"%s\", \"%s\", \"%s\", %d, b\'1\'", book.getTitle(), book.getAuthor(), book.getPublisher(), book.getYear())
+                            );
+                            ResultSet rs2 = connection.execQuery("books", "ID", String.format("Title=\"%s\";", book.getTitle()));
+                            if(rs2.next()){
+                                int id = rs2.getInt("ID");
+                                String raw_path = request.getRequestLine().getUri();
+                                String message = String.format("Please visit %s", "http://localhost:8080" +
+                                        URIparser.parsedUri(raw_path) + "/" +
+                                        id + "?" +
+                                        URIparser.getQueryParams(raw_path));
+                                StringEntity stringEntity = new StringEntity(message, ContentType.DEFAULT_TEXT);
+                                response.addHeader("Location", String.format("/books/%d", id));
+                                response.setEntity(stringEntity);
+                                response.setStatusCode(HttpStatus.SC_CREATED);
+                            }
+                        }
+                        else{
+                            ResultSet rs3 = connection.execQuery("books", "ID", String.format("Title=\"%s\";", book.getTitle()));
+                            rs3.next();
+                            int id = rs3.getInt("ID");
+                            response.addHeader("Duplicate record", String.format("/books/%d", id));
+                            response.setStatusCode(HttpStatus.SC_CONFLICT);
+                        }
+                    }catch(SQLException e){
+                        System.out.println(e);
+                    }
+                }
+            }catch(NullPointerException e){
+                response.setStatusCode(HttpStatus.SC_BAD_REQUEST);
             }
         }
     }
@@ -156,6 +160,10 @@ public class BookManagement {
                 }
             }catch(SQLException e){
                 System.out.println(e);
+            }
+
+            if(limit == -1){
+                response.setStatusCode(HttpStatus.SC_BAD_REQUEST);
             }
         }
     }
